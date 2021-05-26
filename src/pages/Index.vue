@@ -27,7 +27,13 @@
           dense
         >
           <template v-slot:top-right>
-            <q-input class="q-mb-sm" dense debounce="300" v-model="search" placeholder="Search">
+            <q-input
+              class="q-mb-sm"
+              dense
+              debounce="300"
+              v-model="search"
+              placeholder="Search"
+            >
               <template v-slot:append>
                 <q-icon name="search" />
               </template>
@@ -51,9 +57,11 @@
                 {{ props.row.total }}
               </q-td>
               <q-td key="action" :props="props" class="text-center q-gutter-sm">
-                <q-btn round size="xs">
+                <q-btn @click="copyRonin(props.row.ronin)" round size="xs">
                   <q-tooltip anchor="top middle" self="bottom middle">
-                    <span class="text-caption">{{ props.row.ronin }}</span>
+                    <span class="text-caption"
+                      >ronin:{{ props.row.ronin }}</span
+                    >
                   </q-tooltip>
                   <q-avatar size="sm">
                     <img
@@ -79,6 +87,7 @@
 
 <script>
 import { date } from "quasar";
+import { copyToClipboard } from "quasar";
 
 export default {
   data() {
@@ -106,7 +115,7 @@ export default {
           required: true,
           label: "Claimable",
           align: "left",
-          field: row => row.claimable,
+          field: row => row.claimable
         },
         {
           name: "days",
@@ -141,6 +150,21 @@ export default {
   },
 
   methods: {
+    copyRonin(addy) {
+      copyToClipboard("ronin:" + addy)
+        .then(() => {
+          this.$q.notify({
+            message: "Copied!",
+            icon: "thumb_up",
+            color: "secondary",
+            position: "center"
+          });
+        })
+        .catch(() => {
+          // fail
+        });
+    },
+
     async deleteData(data) {
       const local = this.$q.localStorage;
       await local.remove(data.id);
@@ -197,7 +221,7 @@ export default {
     async addData() {
       this.form.id = this.ethArray.length + 1;
       await this.$q.localStorage.set(this.form.id, this.form);
-      this.newData({eth: this.form.eth, name: this.form.name});
+      this.newData({ eth: this.form.eth, name: this.form.name });
       setTimeout(this.clear(), 3000);
     },
 
@@ -215,7 +239,6 @@ export default {
               sch.items[0].last_claimed_item_at * 1000
             );
             const today = new Date();
-            const diff = date.getDateDiff(today, claimed_date, "days");
 
             const diffInTime = today.getTime() - claimed_date.getTime();
             // Calculating the no. of days between two dates
