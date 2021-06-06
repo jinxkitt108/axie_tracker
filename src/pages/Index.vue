@@ -254,7 +254,8 @@ export default {
             message: "Copied!",
             icon: "thumb_up",
             color: "secondary",
-            position: "center"
+            position: "center",
+            timeout: 600
           });
         })
         .catch(() => {
@@ -269,7 +270,8 @@ export default {
             message: "Copied!",
             icon: "thumb_up",
             color: "secondary",
-            position: "center"
+            position: "center",
+            timeout: 600
           });
         })
         .catch(() => {
