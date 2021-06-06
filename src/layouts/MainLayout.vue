@@ -18,8 +18,9 @@
 
     <q-footer class="bg-grey-10 text-white">
       <q-toolbar>
-        <q-toolbar-title class="text-center">
-          <p class="text-caption">Play to Earn. <a class="link" href="https://axieinfinity.com/">Axie Infinity</a>  gaming!</p>
+        <q-toolbar-title class="text-center q-pa-sm">
+          <span class="text-caption">Play to Earn. <a class="link" href="https://axieinfinity.com/">Axie Infinity</a>  gaming!</span>
+           <q-btn class="float-right" icon="recommend" rounded outline size="sm" label="Donate !" color="yellow" @click="donate = true" />
         </q-toolbar-title>
       </q-toolbar>
     </q-footer>

@@ -2,7 +2,7 @@
   <q-page>
     <div style="max-width: 650px" class="q-mx-auto q-gutter-sm q-my-md">
       <div class="text-center">
-        <p class="text-h5 q-ma-md">
+        <p class="text-h6 q-ma-md">
           Powered by
           <span v-if="$q.platform.is.electron">
             CC Gamers
@@ -29,7 +29,7 @@
       </div>
       <div style="width: 350px" class="q-mx-auto">
         <q-form
-          class="q-gutter-sm"
+          class="q-gutter-sm q-pa-sm"
           ref="form"
           @reset="onReset"
           @submit="addData"
@@ -54,13 +54,22 @@
           />
           <div class="text-center">
             <q-btn type="submit" color="dark" label="Add Scholar" />
-            <!-- <q-btn label="Reset" type="reset" color="red" flat class="q-ml-sm" /> -->
+            <q-btn label="Reset" type="reset" color="red" flat class="q-ml-sm" />
           </div>
         </q-form>
       </div>
 
-      <div class="q-mt-sm">
-        <q-btn class="q-mb-sm" icon="recommend" rounded outline size="sm" label="Donate !" color="primary" @click="donate = true" />
+      <div class="q-mt-lg">
+        <div class="text-center q-gutter-md q-mb-sm q-mt-sm">
+          <!-- <div class="col-5 self-center">
+            <q-btn icon="recommend" rounded outline size="sm" label="Donate !" color="primary" @click="donate = true" />
+          </div> -->
+          <!-- <div class="col-7 q-gutter-lg self-center"> -->
+            <span class="text-subtitle2 text-weight-bold">Total Claimable SLP: <span class="text-indigo q-ml-xs">{{total_claimable}}</span></span>
+            <span class="text-subtitle2 text-weight-bold">Total SLP: <span class="text-indigo">{{total_slp}}</span></span>
+          <!-- </div> -->
+        </div>
+
         <q-table
           :dense="$q.screen.lt.md"
           :filter="search"
@@ -176,6 +185,8 @@ export default {
       cc_eth: "0x1d799bda34cc88844e952f893c82e50b61dce71d",
       donate: false,
       loading: false,
+      total_slp: 0,
+      total_claimable: 0,
       search: "",
       form: new Form({
         id: null,
@@ -313,6 +324,8 @@ export default {
                   ronin: sch.items[0].ronin_address,
                   eth: sch.items[0].client_id
                 });
+                this.total_slp = this.total_slp + sch.items[0].total;
+                this.total_claimable = this.total_claimable + sch.items[0].claimable_total;
               }
               this.loading = false;
             })
@@ -363,6 +376,8 @@ export default {
               ronin: sch.items[0].ronin_address,
               eth: sch.items[0].client_id
             });
+            this.total_slp = this.total_slp + sch.items[0].total;
+            this.total_claimable = this.total_claimable + sch.items[0].claimable_total;
           }
         })
         .catch(err => {
