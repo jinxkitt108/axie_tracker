@@ -4,7 +4,7 @@
     <q-header elevated class="bg-dark text-white">
       <q-toolbar>
         <q-toolbar-title>
-          <q-avatar square>
+          <q-avatar v-if="!$q.platform.is.electron" square>
             <img src="icons/favicon-128x128.png">
           </q-avatar>
           AXIE SCHOLARSHIP TRACKER
