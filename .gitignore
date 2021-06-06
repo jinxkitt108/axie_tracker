@@ -1,6 +1,8 @@
 .DS_Store
 .thumbs.db
+.firebase
 node_modules
+src-electron
 
 # Quasar core related directories
 .quasar
