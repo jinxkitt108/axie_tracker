@@ -11,21 +11,6 @@
             <img src="icons/favicon-128x128.png" />
           </q-avatar>
         </p>
-        <q-dialog v-model="donate">
-          <q-card style="width: 350px; max-width: 80vw;">
-            <q-card-section>
-              <div class="text-h6">Details</div>
-            </q-card-section>
-            <q-card-section class="q-gutter-sm">
-               <q-input outlined v-model="cc_eth" label="ERC20" readonly />
-               <q-btn dense class="full-width" @click="copyEth(cc_eth)" label="Copy" color="primary" />
-            </q-card-section>
-
-            <q-card-actions align="right">
-              <q-btn flat label="Close" color="primary" v-close-popup />
-            </q-card-actions>
-          </q-card>
-        </q-dialog>
       </div>
       <div style="width: 350px" class="q-mx-auto">
         <q-form
@@ -54,23 +39,63 @@
           />
           <div class="text-center">
             <q-btn type="submit" color="dark" label="Add Scholar" />
-            <q-btn label="Reset" type="reset" color="red" flat class="q-ml-sm" />
+            <q-btn
+              label="Reset"
+              type="reset"
+              color="red"
+              flat
+              class="q-ml-sm"
+            />
           </div>
         </q-form>
       </div>
 
       <div class="q-mt-lg">
-        <div class="text-center q-gutter-md q-mb-sm q-mt-sm">
+        <div class="text-center q-gutter-lg q-mb-sm q-mt-sm">
           <!-- <div class="col-5 self-center">
             <q-btn icon="recommend" rounded outline size="sm" label="Donate !" color="primary" @click="donate = true" />
           </div> -->
           <!-- <div class="col-7 q-gutter-lg self-center"> -->
-            <span class="text-subtitle2 text-weight-bold">Total Claimable SLP: <span class="text-indigo q-ml-xs">{{total_claimable}}</span></span>
-            <span class="text-subtitle2 text-weight-bold">Total SLP: <span class="text-indigo">{{total_slp}}</span></span>
+          <span class="text-subtitle1 text-weight-bold"
+            >Total Claimable SLP:
+            <span class="text-indigo q-ml-xs">{{ total_claimable }}</span></span
+          >
+          <span class="text-subtitle1 text-weight-bold"
+            >Total SLP: <span class="text-indigo">{{ total_slp }}</span></span
+          >
           <!-- </div> -->
         </div>
-
+        <div class="row q-mt-sm">
+          <q-btn
+            color="primary"
+            icon-right="archive"
+            label="Export to Excel"
+            size="sm"
+            no-caps
+            @click="exportTable"
+          />
+          <q-space />
+          <div class="q-gutter-md">
+            <q-btn
+              color="dark"
+              label="Copy All Scholars"
+              size="sm"
+              @click="exportScholars()"
+              rounded
+              no-caps
+            />
+            <q-btn
+              color="teal"
+              label="Import Scholars"
+              size="sm"
+              @click="importScholars"
+              rounded
+              no-caps
+            />
+          </div>
+        </div>
         <q-table
+          class="q-mt-md"
           :dense="$q.screen.lt.md"
           :filter="search"
           title="Scholars"
@@ -78,6 +103,7 @@
           :data="scholarData"
           :row-key="row => row.id"
           :loading="loading"
+          :pagination="pagination"
           no-data-label="No scholars data available. Add one!"
           no-results-label="Search not found. . ."
         >
@@ -178,11 +204,36 @@
 <script>
 import { date } from "quasar";
 import { copyToClipboard } from "quasar";
+import { exportFile } from "quasar";
+
+function wrapCsvValue(val, formatFn) {
+  let formatted = formatFn !== void 0 ? formatFn(val) : val;
+
+  formatted =
+    formatted === void 0 || formatted === null ? "" : String(formatted);
+
+  formatted = formatted.split('"').join('""');
+  /**
+   * Excel accepts \n and \r in strings, but some other CSV parsers do not
+   * Uncomment the next two lines to escape new lines
+   */
+  // .split('\n').join('\\n')
+  // .split('\r').join('\\r')
+
+  return `"${formatted}"`;
+}
 
 export default {
   data() {
     return {
-      cc_eth: "0x1d799bda34cc88844e952f893c82e50b61dce71d",
+      scholars: [],
+      pagination: {
+        sortBy: "desc",
+        descending: false,
+        page: 1,
+        rowsPerPage: 10
+        // rowsNumber: xx if getting data from a server
+      },
       donate: false,
       loading: false,
       total_slp: 0,
@@ -247,6 +298,61 @@ export default {
   },
 
   methods: {
+    async importScholars() {
+      const text = await navigator.clipboard.readText();
+      var data = JSON.parse(text);
+      Object.keys(data).forEach(function(k) {
+        localStorage.setItem(k, data[k]);
+      });
+      setTimeout(this.getData(), 4500);
+    },
+
+    exportScholars() {
+      copyToClipboard(JSON.stringify(localStorage))
+        .then(() => {
+          this.$q.notify({
+            message: "Copied!",
+            icon: "thumb_up",
+            color: "secondary",
+            position: "center",
+            timeout: 600
+          });
+        })
+        .catch(() => {
+          // fail
+        });
+    },
+
+    exportTable() {
+      // naive encoding to csv format
+      const content = [this.columns.map(col => wrapCsvValue(col.label))]
+        .concat(
+          this.scholarData.map(row =>
+            this.columns
+              .map(col =>
+                wrapCsvValue(
+                  typeof col.field === "function"
+                    ? col.field(row)
+                    : row[col.field === void 0 ? col.name : col.field],
+                  col.format
+                )
+              )
+              .join(",")
+          )
+        )
+        .join("\r\n");
+
+      const status = exportFile("table-export.csv", content, "text/csv");
+
+      if (status !== true) {
+        this.$q.notify({
+          message: "Browser denied file download...",
+          color: "negative",
+          icon: "warning"
+        });
+      }
+    },
+
     copyRonin(addy) {
       copyToClipboard("ronin:" + addy)
         .then(() => {
@@ -327,7 +433,8 @@ export default {
                   eth: sch.items[0].client_id
                 });
                 this.total_slp = this.total_slp + sch.items[0].total;
-                this.total_claimable = this.total_claimable + sch.items[0].claimable_total;
+                this.total_claimable =
+                  this.total_claimable + sch.items[0].claimable_total;
               }
               this.loading = false;
             })
@@ -341,7 +448,11 @@ export default {
     async addData() {
       this.form.id = Date.now();
       if (this.form.name && this.form.eth) {
-        await this.$q.localStorage.set(this.form.id, this.form);
+        await this.$q.localStorage.set(this.form.id, {
+          id: this.form.id,
+          eth: this.form.eth,
+          name: this.form.name
+        });
         this.newData({ eth: this.form.eth, name: this.form.name });
         setTimeout(this.onReset(), 3000);
       }
@@ -379,7 +490,8 @@ export default {
               eth: sch.items[0].client_id
             });
             this.total_slp = this.total_slp + sch.items[0].total;
-            this.total_claimable = this.total_claimable + sch.items[0].claimable_total;
+            this.total_claimable =
+              this.total_claimable + sch.items[0].claimable_total;
           }
         })
         .catch(err => {
