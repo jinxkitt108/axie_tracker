@@ -305,19 +305,28 @@ export default {
 
   methods: {
     clearData() {
-      this.$q.dialog({
-        dark: true,
-        title: 'Confirm',
-        message: 'Are you sure you want to DELETE all scholars?',
-        cancel: true,
-        persistent: true
-      }).onOk(() => {
-        localStorage.clear();
-        this.ethArray = [];
-        this.scholarData = [];
-        this.total_slp = 0;
-        this.total_claimable = 0;
-      })
+      if(this.ethArray.length) {
+        this.$q.dialog({
+          dark: true,
+          title: 'Confirm',
+          message: 'Are you sure you want to DELETE all scholars?',
+          cancel: true,
+          persistent: true
+        }).onOk(() => {
+          localStorage.clear();
+          this.ethArray = [];
+          this.scholarData = [];
+          this.total_slp = 0;
+          this.total_claimable = 0;
+        })
+      } else {
+        this.$q
+          .dialog({
+            dark: true,
+            title: "Alert",
+            message: "No available data for scholars!"
+          })
+      }
     },
 
     async importScholars() {
@@ -341,36 +350,36 @@ export default {
             title: "Alert",
             message: "No available data for scholars! Copy it again!"
           })
-          .onOk(() => {
-            // console.log('OK')
-          })
-          .onCancel(() => {
-            // console.log('Cancel')
-          })
-          .onDismiss(() => {
-            // console.log('I am triggered on both OK and Cancel')
-          });
       }
     },
 
     exportScholars() {
-      copyToClipboard(JSON.stringify(this.ethArray))
-        .then(() => {
-          this.$q.notify({
-            message: "Copied!",
-            icon: "thumb_up",
-            color: "dark",
-            position: "center",
-            timeout: 600
+      if(this.ethArray.length) {
+        copyToClipboard(JSON.stringify(this.ethArray))
+          .then(() => {
+            this.$q.notify({
+              message: "Copied!",
+              icon: "thumb_up",
+              color: "dark",
+              position: "center",
+              timeout: 600
+            });
+          })
+          .catch(() => {
+            // fail
           });
-        })
-        .catch(() => {
-          // fail
-        });
+      } else {
+          this.$q
+          .dialog({
+            dark: true,
+            title: "Alert",
+            message: "No available data for scholars!"
+          })
+      }
     },
 
     exportTable() {
-      // naive encoding to csv format
+     if(this.ethArray.length) { // naive encoding to csv format
       const content = [this.columns.map(col => wrapCsvValue(col.label))]
         .concat(
           this.scholarData.map(row =>
@@ -390,12 +399,20 @@ export default {
 
       const status = exportFile("axie-scholars-table.csv", content, "text/csv");
 
-      if (status !== true) {
-        this.$q.notify({
-          message: "Browser denied file download...",
-          color: "negative",
-          icon: "warning"
-        });
+        if (status !== true) {
+          this.$q.notify({
+            message: "Browser denied file download...",
+            color: "negative",
+            icon: "warning"
+          });
+        }
+      } else {
+        this.$q
+          .dialog({
+            dark: true,
+            title: "Alert",
+            message: "No available data for scholars!"
+          })
       }
     },
 
