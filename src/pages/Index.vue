@@ -42,7 +42,7 @@
             <q-btn
               label="Reset"
               type="reset"
-              color="red"
+              color="negative"
               flat
               class="q-ml-sm"
             />
@@ -56,43 +56,49 @@
             <q-btn icon="recommend" rounded outline size="sm" label="Donate !" color="primary" @click="donate = true" />
           </div> -->
           <!-- <div class="col-7 q-gutter-lg self-center"> -->
-          <span class="text-subtitle1 text-weight-bold"
-            >Total Claimable SLP:
+          <span class="text-caption text-weight-bold"
+            >Total Unclaimed SLP:
             <span class="text-indigo q-ml-xs">{{ total_claimable }}</span></span
           >
-          <span class="text-subtitle1 text-weight-bold"
+          <span class="text-caption text-weight-bold"
             >Total SLP: <span class="text-indigo">{{ total_slp }}</span></span
           >
           <!-- </div> -->
         </div>
-        <div class="row q-mt-sm">
+        <div class="row q-mt-sm q-gutter-sm">
           <q-btn
-            color="primary"
+            color="indigo"
             icon-right="archive"
-            label="Export to Excel"
+            label="Excel"
+            rounded
             size="sm"
             no-caps
             @click="exportTable"
           />
-          <q-space />
-          <div class="q-gutter-md">
-            <q-btn
-              color="dark"
-              label="Copy All Scholars"
-              size="sm"
-              @click="exportScholars()"
-              rounded
-              no-caps
-            />
-            <q-btn
-              color="teal"
-              label="Import Scholars"
-              size="sm"
-              @click="importScholars"
-              rounded
-              no-caps
-            />
-          </div>
+          <q-btn
+            color="primary"
+            label="Copy Scholars"
+            size="sm"
+            @click="exportScholars()"
+            rounded
+            no-caps
+          />
+          <q-btn
+            color="teal"
+            label="Import Scholars"
+            size="sm"
+            @click="importScholars"
+            rounded
+            no-caps
+          />
+          <q-btn
+            color="negative"
+            label="Clear Scholars"
+            size="sm"
+            @click="clearData"
+            rounded
+            no-caps
+          />
         </div>
         <q-table
           class="q-mt-md"
@@ -298,22 +304,62 @@ export default {
   },
 
   methods: {
+    clearData() {
+      this.$q.dialog({
+        dark: true,
+        title: 'Confirm',
+        message: 'Are you sure you want to DELETE all scholars?',
+        cancel: true,
+        persistent: true
+      }).onOk(() => {
+        localStorage.clear();
+        this.ethArray = [];
+        this.scholarData = [];
+        this.total_slp = 0;
+        this.total_claimable = 0;
+      })
+    },
+
     async importScholars() {
-      const text = await navigator.clipboard.readText();
-      var data = JSON.parse(text);
-      Object.keys(data).forEach(function(k) {
-        localStorage.setItem(k, data[k]);
-      });
-      setTimeout(this.getData(), 4500);
+      try {
+        const ethArray = await navigator.clipboard.readText();
+        var data = JSON.parse(ethArray);
+        data.forEach(eth => {
+          if (eth.eth) {
+            this.$q.localStorage.set(eth.id, {
+              id: eth.id,
+              eth: eth.eth,
+              name: eth.name
+            });
+          }
+        });
+        setTimeout(this.getData(), 4500);
+      } catch (e) {
+        this.$q
+          .dialog({
+            dark: true,
+            title: "Alert",
+            message: "No available data for scholars! Copy it again!"
+          })
+          .onOk(() => {
+            // console.log('OK')
+          })
+          .onCancel(() => {
+            // console.log('Cancel')
+          })
+          .onDismiss(() => {
+            // console.log('I am triggered on both OK and Cancel')
+          });
+      }
     },
 
     exportScholars() {
-      copyToClipboard(JSON.stringify(localStorage))
+      copyToClipboard(JSON.stringify(this.ethArray))
         .then(() => {
           this.$q.notify({
             message: "Copied!",
             icon: "thumb_up",
-            color: "secondary",
+            color: "dark",
             position: "center",
             timeout: 600
           });
@@ -342,7 +388,7 @@ export default {
         )
         .join("\r\n");
 
-      const status = exportFile("table-export.csv", content, "text/csv");
+      const status = exportFile("axie-scholars-table.csv", content, "text/csv");
 
       if (status !== true) {
         this.$q.notify({
@@ -357,9 +403,9 @@ export default {
       copyToClipboard("ronin:" + addy)
         .then(() => {
           this.$q.notify({
-            message: "Copied!",
+            message: "Copied Ronin Address!",
             icon: "thumb_up",
-            color: "secondary",
+            color: "dark",
             position: "center",
             timeout: 600
           });
@@ -373,9 +419,9 @@ export default {
       copyToClipboard(addy)
         .then(() => {
           this.$q.notify({
-            message: "Copied!",
+            message: "Copied Eth Address!",
             icon: "thumb_up",
-            color: "secondary",
+            color: "dark",
             position: "center",
             timeout: 600
           });
@@ -385,18 +431,34 @@ export default {
         });
     },
 
-    async deleteData(data) {
-      const local = this.$q.localStorage;
-      await local.remove(data.id);
-      this.scholarData = this.scholarData.filter(item => item.id !== data.id);
+    deleteData(data) {
+       this.$q.dialog({
+        dark: true,
+        title: 'Confirm',
+        message: 'Are you sure you want to remove ' + data.name + ' as a scholar?',
+        cancel: true,
+        persistent: true
+      }).onOk(() => {
+        const local = this.$q.localStorage;
+        local.remove(data.id);
+        this.scholarData = this.scholarData.filter(item => item.id !== data.id);
+        this.ethArray = this.ethArray.filter(item => item.id !== data.id);
+        this.total_claimable = this.total_claimable - data.claimable;
+        this.total_slp = this.total_slp - data.total;
+      })
     },
 
     async getData() {
+      this.scholarData = [];
       if (localStorage.length) {
         this.loading = true;
         const obj = this.$q.localStorage.getAll();
         Object.keys(obj).forEach(key => {
-          this.ethArray.push(obj[key]);
+          this.ethArray.push({
+            id: obj[key].id,
+            name: obj[key].name,
+            eth: obj[key].eth
+          });
         });
         this.ethArray.sort();
 

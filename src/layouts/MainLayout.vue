@@ -62,12 +62,30 @@
 </template>
 
 <script>
+import { copyToClipboard } from "quasar";
 export default {
   data() {
     return {
       donate: false,
-      cc_eth: "0x1d799bda34cc88844e952f893c82e50b61dce71d",
+      cc_eth: "0x1d799bda34cc88844e952f893c82e50b61dce71d"
     };
+  },
+  methods: {
+    copyEth(addy) {
+      copyToClipboard(addy)
+        .then(() => {
+          this.$q.notify({
+            message: "Copied!",
+            icon: "thumb_up",
+            color: "dark",
+            position: "center",
+            timeout: 600
+          });
+        })
+        .catch(() => {
+          // fail
+        });
+    }
   }
 };
 </script>
