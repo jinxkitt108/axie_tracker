@@ -57,7 +57,7 @@
           </div> -->
           <!-- <div class="col-7 q-gutter-lg self-center"> -->
           <span class="text-caption text-weight-bold"
-            >Total Unclaimed SLP:
+            >Total Ronin Bal:
             <span class="text-indigo q-ml-xs">{{ total_claimable }}</span></span
           >
           <span class="text-caption text-weight-bold"
@@ -149,7 +149,8 @@
                     alt=""
                   />
                 </q-avatar>
-                {{ props.row.total }}
+                  {{ props.row.total }}
+                <q-badge v-if="props.row.sync_ready" rounded color="green" floating>Claimable</q-badge>
               </q-td>
               <q-td key="action" :props="props" class="text-center q-gutter-sm">
                 <q-btn flat @click="copyEth(props.row.eth)" round size="xs">
@@ -164,9 +165,7 @@
                 </q-btn>
                 <q-btn flat @click="copyRonin(props.row.ronin)" round size="xs">
                   <q-tooltip anchor="top middle" self="bottom middle">
-                    <span class="text-caption"
-                      >ronin:{{ props.row.ronin }}</span
-                    >
+                    <span class="text-caption">{{ props.row.ronin }}</span>
                   </q-tooltip>
                   <q-avatar size="sm">
                     <img
@@ -265,7 +264,7 @@ export default {
         {
           name: "claimable",
           required: true,
-          label: "Claimable",
+          label: "Ronin Balance",
           align: "left",
           field: row => row.claimable
         },
@@ -305,27 +304,28 @@ export default {
 
   methods: {
     clearData() {
-      if(this.ethArray.length) {
-        this.$q.dialog({
-          dark: true,
-          title: 'Confirm',
-          message: 'Are you sure you want to DELETE all scholars?',
-          cancel: true,
-          persistent: true
-        }).onOk(() => {
-          localStorage.clear();
-          this.ethArray = [];
-          this.scholarData = [];
-          this.total_slp = 0;
-          this.total_claimable = 0;
-        })
-      } else {
+      if (this.ethArray.length) {
         this.$q
           .dialog({
             dark: true,
-            title: "Alert",
-            message: "No available data for scholars!"
+            title: "Confirm",
+            message: "Are you sure you want to DELETE all scholars?",
+            cancel: true,
+            persistent: true
           })
+          .onOk(() => {
+            localStorage.clear();
+            this.ethArray = [];
+            this.scholarData = [];
+            this.total_slp = 0;
+            this.total_claimable = 0;
+          });
+      } else {
+        this.$q.dialog({
+          dark: true,
+          title: "Alert",
+          message: "No available data for scholars!"
+        });
       }
     },
 
@@ -342,19 +342,19 @@ export default {
             });
           }
         });
+
         setTimeout(this.getData(), 4500);
       } catch (e) {
-        this.$q
-          .dialog({
-            dark: true,
-            title: "Alert",
-            message: "No available data for scholars! Copy it again!"
-          })
+        this.$q.dialog({
+          dark: true,
+          title: "Alert",
+          message: "No available data for scholars! Copy it again!"
+        });
       }
     },
 
     exportScholars() {
-      if(this.ethArray.length) {
+      if (this.ethArray.length) {
         copyToClipboard(JSON.stringify(this.ethArray))
           .then(() => {
             this.$q.notify({
@@ -369,35 +369,39 @@ export default {
             // fail
           });
       } else {
-          this.$q
-          .dialog({
-            dark: true,
-            title: "Alert",
-            message: "No available data for scholars!"
-          })
+        this.$q.dialog({
+          dark: true,
+          title: "Alert",
+          message: "No available data for scholars!"
+        });
       }
     },
 
     exportTable() {
-     if(this.ethArray.length) { // naive encoding to csv format
-      const content = [this.columns.map(col => wrapCsvValue(col.label))]
-        .concat(
-          this.scholarData.map(row =>
-            this.columns
-              .map(col =>
-                wrapCsvValue(
-                  typeof col.field === "function"
-                    ? col.field(row)
-                    : row[col.field === void 0 ? col.name : col.field],
-                  col.format
+      if (this.ethArray.length) {
+        // naive encoding to csv format
+        const content = [this.columns.map(col => wrapCsvValue(col.label))]
+          .concat(
+            this.scholarData.map(row =>
+              this.columns
+                .map(col =>
+                  wrapCsvValue(
+                    typeof col.field === "function"
+                      ? col.field(row)
+                      : row[col.field === void 0 ? col.name : col.field],
+                    col.format
+                  )
                 )
-              )
-              .join(",")
+                .join(",")
+            )
           )
-        )
-        .join("\r\n");
+          .join("\r\n");
 
-      const status = exportFile("axie-scholars-table.csv", content, "text/csv");
+        const status = exportFile(
+          "axie-scholars-table.csv",
+          content,
+          "text/csv"
+        );
 
         if (status !== true) {
           this.$q.notify({
@@ -407,17 +411,16 @@ export default {
           });
         }
       } else {
-        this.$q
-          .dialog({
-            dark: true,
-            title: "Alert",
-            message: "No available data for scholars!"
-          })
+        this.$q.dialog({
+          dark: true,
+          title: "Alert",
+          message: "No available data for scholars!"
+        });
       }
     },
 
     copyRonin(addy) {
-      copyToClipboard("ronin:" + addy)
+      copyToClipboard(addy)
         .then(() => {
           this.$q.notify({
             message: "Copied Ronin Address!",
@@ -449,25 +452,36 @@ export default {
     },
 
     deleteData(data) {
-       this.$q.dialog({
-        dark: true,
-        title: 'Confirm',
-        message: 'Are you sure you want to remove ' + data.name + ' as a scholar?',
-        cancel: true,
-        persistent: true
-      }).onOk(() => {
-        const local = this.$q.localStorage;
-        local.remove(data.id);
-        this.scholarData = this.scholarData.filter(item => item.id !== data.id);
-        this.ethArray = this.ethArray.filter(item => item.id !== data.id);
-        this.total_claimable = this.total_claimable - data.claimable;
-        this.total_slp = this.total_slp - data.total;
-      })
+      this.$q
+        .dialog({
+          dark: true,
+          title: "Confirm",
+          message:
+            'Are you sure you want to remove <span class="text-yellow text-subtitle2">"' +
+            data.name +
+            '"</span> as a scholar?',
+          cancel: true,
+          html: true,
+          persistent: true
+        })
+        .onOk(() => {
+          const local = this.$q.localStorage;
+          local.remove(data.id);
+          this.scholarData = this.scholarData.filter(
+            item => item.id !== data.id
+          );
+          this.ethArray = this.ethArray.filter(item => item.id !== data.id);
+          this.total_claimable = this.total_claimable - data.claimable;
+          this.total_slp = this.total_slp - data.total;
+        });
     },
 
     async getData() {
-      this.scholarData = [];
       if (localStorage.length) {
+        //Clear Data before syncing new scholars
+        this.ethArray = [];
+        this.scholarData = [];
+
         this.loading = true;
         const obj = this.$q.localStorage.getAll();
         Object.keys(obj).forEach(key => {
@@ -498,8 +512,10 @@ export default {
                 const diffInTime = today.getTime() - claimed_date.getTime();
                 // Calculating the no. of days between two dates
                 const diffInDays = Math.round(diffInTime / 86400000);
+                const inv_slp =
+                  sch.items[0].total - sch.items[0].claimable_total;
 
-                const ave = Math.round(sch.items[0].total / diffInDays);
+                const ave = Math.round(inv_slp / diffInDays);
 
                 this.scholarData.push({
                   id: item.id,
@@ -507,11 +523,12 @@ export default {
                   claimable: sch.items[0].claimable_total,
                   days: diffInDays,
                   average: ave,
-                  total: sch.items[0].total,
-                  ronin: sch.items[0].ronin_address,
-                  eth: sch.items[0].client_id
+                  total: inv_slp,
+                  ronin: sch.items[0].ronin_address.replace("0x", "ronin:"),
+                  eth: sch.items[0].client_id,
+                  sync_ready: diffInDays >= 14 ? true : false
                 });
-                this.total_slp = this.total_slp + sch.items[0].total;
+                this.total_slp = this.total_slp + inv_slp;
                 this.total_claimable =
                   this.total_claimable + sch.items[0].claimable_total;
               }
@@ -525,6 +542,7 @@ export default {
     },
 
     async addData() {
+      this.loading = true;
       this.form.id = Date.now();
       if (this.form.name && this.form.eth) {
         await this.$q.localStorage.set(this.form.id, {
@@ -555,8 +573,9 @@ export default {
             const diffInTime = today.getTime() - claimed_date.getTime();
             // Calculating the no. of days between two dates
             const diffInDays = Math.round(diffInTime / 86400000);
+            const inv_slp = sch.items[0].total - sch.items[0].claimable_total;
 
-            const ave = Math.round(sch.items[0].total / diffInDays);
+            const ave = Math.round(inv_slp / diffInDays);
 
             this.scholarData.push({
               id: item.id,
@@ -565,12 +584,14 @@ export default {
               days: diffInDays,
               average: ave,
               total: sch.items[0].total,
-              ronin: sch.items[0].ronin_address,
-              eth: sch.items[0].client_id
+              ronin: sch.items[0].ronin_address.replace("0x", "ronin:"),
+              eth: sch.items[0].client_id,
+              sync_ready: diffInDays >= 14 ? true : false
             });
             this.total_slp = this.total_slp + sch.items[0].total;
             this.total_claimable =
               this.total_claimable + sch.items[0].claimable_total;
+            this.loading = false;
           }
         })
         .catch(err => {
