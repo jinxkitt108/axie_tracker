@@ -52,6 +52,15 @@
 
       <div class="q-mt-lg">
         <div class="text-center q-gutter-lg q-mb-sm q-mt-sm">
+          <span class="text-subtitle2 text-weight-bold"
+            >No. of Scholars:
+            <span class="text-indigo q-ml-xs">{{ ethArray.length }}</span></span
+          >
+          <!-- <span class="text-caption text-weight-bold"
+            >Total SLP: <span class="text-indigo">{{ total_slp }}</span></span
+          > -->
+        </div>
+        <div class="text-center q-gutter-lg q-mb-sm q-mt-sm">
           <!-- <div class="col-5 self-center">
             <q-btn icon="recommend" rounded outline size="sm" label="Donate !" color="primary" @click="donate = true" />
           </div> -->
@@ -130,7 +139,7 @@
           </template>
           <template v-slot:body="props">
             <q-tr :props="props">
-              <q-td key="name" :props="props">
+              <q-td class="text-weight-bold" key="name" :props="props">
                 {{ props.row.name }}
               </q-td>
               <q-td key="claimable" :props="props">
@@ -236,7 +245,7 @@ export default {
         sortBy: "desc",
         descending: false,
         page: 1,
-        rowsPerPage: 10
+        rowsPerPage: 20
         // rowsNumber: xx if getting data from a server
       },
       donate: false,
@@ -265,7 +274,7 @@ export default {
           name: "claimable",
           required: true,
           label: "Ronin Balance",
-          align: "left",
+          align: "center",
           field: row => row.claimable
         },
         {
@@ -309,9 +318,10 @@ export default {
           .dialog({
             dark: true,
             title: "Confirm",
-            message: "Are you sure you want to DELETE all scholars?",
+            message: "Are you sure you want to <span class='text-red-6 text-weight-bold'>DELETE</span> all scholars?",
             cancel: true,
-            persistent: true
+            persistent: true,
+            html: true
           })
           .onOk(() => {
             localStorage.clear();
