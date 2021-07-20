@@ -1,6 +1,6 @@
 <template>
   <q-page>
-    <div style="max-width: 650px" class="q-mx-auto q-gutter-sm q-my-md">
+    <div style="max-width: 750px" class="q-mx-auto q-gutter-sm q-my-md">
       <div class="text-center">
         <p class="text-h6 q-ma-md">
           Powered by
@@ -65,10 +65,10 @@
             <q-btn icon="recommend" rounded outline size="sm" label="Donate !" color="primary" @click="donate = true" />
           </div> -->
           <!-- <div class="col-7 q-gutter-lg self-center"> -->
-          <span class="text-caption text-weight-bold"
+          <!-- <span class="text-caption text-weight-bold"
             >Total Ronin Bal:
-            <!-- <span class="text-indigo q-ml-xs">{{ total_claimable }}</span> -->
-          </span>
+            <span class="text-indigo q-ml-xs">{{ total_claimable }}</span>
+          </span> -->
           <span class="text-caption text-weight-bold"
             >Total SLP: <span class="text-indigo">{{ total_slp }}</span></span
           >
