@@ -593,7 +593,7 @@ export default {
 
             const ave = Math.round(sch.in_game_slp / diffInDays);
 
-            this.scholarData.push({
+            this.scholarData.unshift({
               id: item.id,
               name: item.name,
               days: diffInDays,
