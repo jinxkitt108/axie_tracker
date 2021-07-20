@@ -54,7 +54,7 @@
         <div class="text-center q-gutter-lg q-mb-sm q-mt-sm">
           <span class="text-subtitle2 text-weight-bold"
             >No. of Scholars:
-            <span class="text-indigo q-ml-xs">{{ ethArray.length }}</span></span
+            <span class="text-indigo q-ml-xs">{{ scholarData.length }}</span></span
           >
           <!-- <span class="text-caption text-weight-bold"
             >Total SLP: <span class="text-indigo">{{ total_slp }}</span></span
