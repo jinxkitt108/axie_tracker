@@ -536,8 +536,8 @@ export default {
                 // Calculating the no. of days between two dates
                 const diffInDays = Math.round(diffInTime / 86400000);
                 // const inv_slp = sch.items[0].total - sch.items[0].claimable_total;
-
-                const ave = Math.round(sch.in_game_slp / diffInDays);
+                
+                const ave = diffInDays === 0 ? 0 : Math.round(sch.in_game_slp / diffInDays);
 
                 this.scholarData.push({
                   id: item.id,
@@ -591,7 +591,7 @@ export default {
             const diffInDays = Math.round(diffInTime / 86400000);
             // const inv_slp = sch.items[0].total - sch.items[0].claimable_total;
 
-            const ave = Math.round(sch.in_game_slp / diffInDays);
+            const ave = diffInDays === 0 ? 0 : Math.round(sch.in_game_slp / diffInDays);
 
             this.scholarData.unshift({
               id: item.id,
