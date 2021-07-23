@@ -330,6 +330,8 @@ export default {
 
   methods: {
     clearData() {
+      this.loading= false;
+      
       if (this.ethArray.length) {
         this.$q
           .dialog({
