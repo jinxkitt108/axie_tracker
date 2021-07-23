@@ -32,10 +32,10 @@
             v-model="form.eth"
             dense
             required
-            label="Eth"
+            label="Ronin Address"
             outlined
             rounded
-            hint="Ex. 0x3de46d00....."
+            hint="Ex. ronin:30202d801....."
           />
           <div class="text-center">
             <q-btn type="submit" color="dark" label="Add Scholar" />
