@@ -54,7 +54,9 @@
         <div class="text-center q-gutter-lg q-mb-sm q-mt-sm">
           <span class="text-subtitle2 text-weight-bold"
             >No. of Scholars:
-            <span class="text-indigo q-ml-xs">{{ scholarData.length }}</span></span
+            <span class="text-indigo q-ml-xs">{{
+              scholarData.length
+            }}</span></span
           >
           <!-- <span class="text-caption text-weight-bold"
             >Total SLP: <span class="text-indigo">{{ total_slp }}</span></span
@@ -140,7 +142,12 @@
           <template v-slot:body="props">
             <q-tr :props="props">
               <q-td class="text-weight-bold" key="name" :props="props">
-                {{ props.row.name }}
+                <q-item dense>
+                  <q-item-section>
+                    <q-item-label> {{ props.row.name }}</q-item-label>
+                    <q-item-label caption>{{ props.row.ign }}</q-item-label>
+                  </q-item-section>
+                </q-item>
               </q-td>
               <q-td class="text-weight-bold" key="mmr" :props="props">
                 {{ props.row.mmr }}
@@ -279,6 +286,14 @@ export default {
           field: row => row.name,
           sortable: true
         },
+        // {
+        //   name: "ign",
+        //   required: true,
+        //   label: "Ign",
+        //   align: "left",
+        //   field: row => row.ign,
+        //   sortable: true
+        // },
         {
           name: "mmr",
           required: true,
@@ -330,8 +345,8 @@ export default {
 
   methods: {
     clearData() {
-      this.loading= false;
-      
+      this.loading = false;
+
       if (this.ethArray.length) {
         this.$q
           .dialog({
@@ -538,12 +553,16 @@ export default {
                 // Calculating the no. of days between two dates
                 const diffInDays = Math.round(diffInTime / 86400000);
                 // const inv_slp = sch.items[0].total - sch.items[0].claimable_total;
-                
-                const ave = diffInDays === 0 ? 0 : Math.round(sch.in_game_slp / diffInDays);
+
+                const ave =
+                  diffInDays === 0
+                    ? 0
+                    : Math.round(sch.in_game_slp / diffInDays);
 
                 this.scholarData.push({
                   id: item.id,
                   name: item.name,
+                  ign: sch.ign,
                   days: diffInDays,
                   average: ave,
                   mmr: sch.mmr,
@@ -593,11 +612,13 @@ export default {
             const diffInDays = Math.round(diffInTime / 86400000);
             // const inv_slp = sch.items[0].total - sch.items[0].claimable_total;
 
-            const ave = diffInDays === 0 ? 0 : Math.round(sch.in_game_slp / diffInDays);
+            const ave =
+              diffInDays === 0 ? 0 : Math.round(sch.in_game_slp / diffInDays);
 
             this.scholarData.unshift({
               id: item.id,
               name: item.name,
+              ign: sch.ign,
               days: diffInDays,
               average: ave,
               mmr: sch.mmr,
